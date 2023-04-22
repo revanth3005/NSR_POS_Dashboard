@@ -1,0 +1,9 @@
+.printD {
+    display: none !important;
+  }
+
+@media print {
+  .printD {
+    display: flex !important;
+  }
+}
