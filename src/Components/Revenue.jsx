@@ -6,12 +6,15 @@ const Revenue = () => {
   const [data, setData] = useState([]);
   const [prices, setPrices] = useState({});
   const [load, setLoad] = useState(false);
+  const [refresh, setRefresh] = useState(false);
+  const [excelData, setExcelData] = useState([]);
+
+
   const getBillItemsOnly =
     data &&
     data.reduce((a, b) => {
       return [...a, ...b["billItems"]];
     }, []);
-
   const totalGross =
     getBillItemsOnly &&
     getBillItemsOnly.reduce((a, b) => {
@@ -24,7 +27,7 @@ const Revenue = () => {
         const response = await axios.get(
           "https://pos-services.onrender.com/billedItems"
         );
-        console.log("retrieved data", response.status, response.statusText);
+        setRefresh(false);
         setData(response.data);
         setLoad(true);
       } catch (error) {
@@ -42,23 +45,21 @@ const Revenue = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [refresh]);
   const groupingData = _.groupBy(getBillItemsOnly, "name");
+
   const handleData = async () => {
     for await (const item of data) {
       try {
         const res = await axios.delete(
-          `https://pos-services.onrender.com/foodItems/${item.id}`
+          `https://pos-services.onrender.com/billedItems/${item.id}`
         );
-        console.log(
-          "API data deleted successfully",
-          res.status,
-          res.statusText
-        );
+        console.log("API data deleted successfully");
       } catch (error) {
         console.error("Error deleting API data:", error);
       }
     }
+    setRefresh(true);
   };
   const date = () => {
     const date = new Date();
@@ -88,9 +89,7 @@ const Revenue = () => {
               return (
                 <div key={item} className="d-flex justify-content-between w-60">
                   <div>
-                    <span className="fs-4 fw-normal ">
-                      {item}
-                    </span>
+                    <span className="fs-4 fw-normal ">{item}</span>
                   </div>
                   <div>
                     <span className="fs-4 fw-normal ">
@@ -113,7 +112,7 @@ const Revenue = () => {
             </div>
           </div>
           <button className="btn btn-danger mt-5" onClick={handleData}>
-            Clear Today's Revenue
+            Clear Today's Revenue and Export
           </button>
         </div>
       </div>
